@@ -3,11 +3,17 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Date;
+
+import javax.persistence.EntityManager;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import model.Grades;
+import customTools.DBUtil;
  
 @WebServlet("/Form")
 public class Form extends HttpServlet  
@@ -23,23 +29,19 @@ public class Form extends HttpServlet
 	
     protected void doPost(HttpServletRequest req,HttpServletResponse res)throws ServletException,IOException
     {
-    	 String assignment = req.getParameter("assignment");
-    	 String grade = req.getParameter("grade");
-    	 
-    	 try
-         {
-              Class.forName("oracle.jdbc.driver.OracleDriver");
-              Connection con=DriverManager.getConnection("jdbc:oracle:thin:testuser/password@localhost","testdb","password");
-              Statement st=con.createStatement();
-              System.out.println("connection established successfully...!!");
-              
-              st.executeQuery ("Insert into GRADES (ASSIGNMENT,GRADE) values ('"+assignment+"',"+grade+")");
-  
-                  con.close();
+    	EntityManager emf = DBUtil.getEmFactory().createEntityManager();
+		model.Grades student = new Grades();
+		Insert gr = new Insert();
+		String assignment= req.getParameter("assignment");
+		String gradeString=  req.getParameter("grade").toString();
+		double grade = Double.parseDouble(gradeString);
+		
+		student.setAssignment(assignment);
+		student.setGrade(grade);
+		
+
+		gr.insert(student);
                   getServletContext().getRequestDispatcher("/FromDBase").forward(req, res);
          }
-         catch (Exception e){
-             e.printStackTrace();
-         }
+        
     }
-}

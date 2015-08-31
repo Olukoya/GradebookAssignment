@@ -3,11 +3,16 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+
+import javax.persistence.EntityManager;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import model.Grades;
+import customTools.DBUtil;
  
 @WebServlet("/FromDBase")
 public class FromDBase extends HttpServlet  
@@ -24,42 +29,39 @@ public class FromDBase extends HttpServlet
 	
     protected void doPost(HttpServletRequest req,HttpServletResponse res)throws ServletException,IOException
     {
-    	 try
-         {
-              Class.forName("oracle.jdbc.driver.OracleDriver");
-              Connection con=DriverManager.getConnection("jdbc:oracle:thin:testuser/password@localhost","testdb","password");
-              Statement st=con.createStatement();
-              System.out.println("connection established successfully...!!");     
-  
-              ResultSet rs=st.executeQuery("select * from grades");
-  
-              course+= "<table border=1>";
-              course+= "<tr><th>Assignment</th><th>Grade</th></tr>";
-             average= "<table border=1>";
-             average= "<tr><th>Average</th><th>Average Grade</th></tr>";
-              
-                  while(rs.next())
-                  {
-                 	ass = rs.getString("ASSIGNMENT");
-                     gr = rs.getInt("GRADE");
-                     String grs = gr.toString();
-                    avg += gr;
-                    count++;
-                   avg2 = Double.toString(avg/count);
-                   wAverage = "Average";
-                     course+= "<tr><td>" +ass +"</td><td>"+grs+"</td></tr>";
-                     average= "<tr><td>" +wAverage+"</td><td>"+avg2+"</td></tr>";
-                  }
-                  con.close();
-       
-         }
-         catch (Exception e){
-             e.printStackTrace();
-         }
-  
-         req.setAttribute("message",course);
-         req.setAttribute("message2",average);
- 		getServletContext().getRequestDispatcher("/DBaseOutput.jsp").forward(req, res);
- 		
-    }
-}
+    	EntityManager emf = DBUtil.getEmFactory().createEntityManager();
+		
+		model.Grades cust = new Grades();
+		
+		
+		// get the list of values to display
+	    String line = "<table class=" 
+        		+ "\"table table-striped\"" 
+        		+ "style=width:60%>";
+        
+        line += 
+ 			"<tr>" 
+ 			+"<th>" + "Assignment" + "</th> <br>"
+ 			+"<th>" + "Grade" + "</th> <br>"
+ 			+ "</tr>"
+ 			;
+
+        for(int i=0; i<Insert.selectPost().size(); i++){
+		
+        	line += "<tr>" 
+        			+"<td>" + Insert.selectPost().get(i).getAssignment()+ "</td>"
+        			+"<td>" + Insert.selectPost().get(i).getGrade()+ "</td>"
+        			+"</tr>"
+        	        ;
+        	}
+        
+        	line += "</table>";
+		req.setAttribute("message", line);
+		req.setAttribute("message2", Insert.average(cust));
+		getServletContext().getRequestDispatcher("/DBaseOutput.jsp").forward(req, res);
+		
+	}
+
+	}
+
+
